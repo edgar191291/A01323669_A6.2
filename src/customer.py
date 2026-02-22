@@ -25,7 +25,9 @@ class Customer:
         if not self.name.strip():
             raise ValueError("name cannot be empty.")
         if "@" not in self.email or not self.email.strip():
-            raise ValueError("email must be a valid email-like string (must contain '@').")
+            raise ValueError(
+                "email must be a valid email-like string (must contain '@')."
+                )
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to a JSON-ready dict."""
@@ -37,7 +39,10 @@ class Customer:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Customer":
-        """Deserialize from a dict, raising ValueError if required fields are missing."""
+        """
+        Deserialize from a dict,
+        raising ValueError if required fields are missing.
+        """
         return Customer(
             customer_id=str(data["customer_id"]),
             name=str(data["name"]),

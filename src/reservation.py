@@ -48,7 +48,10 @@ class Reservation:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> "Reservation":
-        """Deserialize from a dict, raising ValueError if required fields are missing."""
+        """
+        Deserialize from a dict,
+        raising ValueError if required fields are missing.
+        """
         return Reservation(
             reservation_id=str(data["reservation_id"]),
             hotel_id=str(data["hotel_id"]),

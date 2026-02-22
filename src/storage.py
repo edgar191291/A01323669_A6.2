@@ -83,7 +83,9 @@ def write_json_list(path: Path, data: list[dict[str, Any]]) -> None:
     ensure_file_exists(path)
 
     if not isinstance(data, list):
-        _print_error("write_json_list expected a list; got a non-list value. Skipping write.")
+        _print_error(
+            "write_json_list expected a list; got a non-list value. Skipping write."
+            )
         return
 
     tmp_path = path.with_suffix(path.suffix + ".tmp")

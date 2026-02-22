@@ -2,7 +2,8 @@
 """
 services.py
 
-Business logic (CRUD + reservation/cancel) for the Reservation System.
+Business logic (Create, Read, Update, Delete + reserve/cancel) for the
+Reservation System.
 
 All persistence is done through JSON files in /data.
 If invalid data is found, print an error and continue execution.
@@ -11,7 +12,6 @@ If invalid data is found, print an error and continue execution.
 from __future__ import annotations
 
 import sys
-from dataclasses import replace
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -27,7 +27,7 @@ def _print_error(message: str) -> None:
     print(f"[ERROR] {message}", file=sys.stderr)
 
 
-# ----- Data file locations (relative to repo root) -----
+# Data file locations (relative to repo root)
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _DATA_DIR = _REPO_ROOT / "data"
 _HOTELS_PATH = _DATA_DIR / "hotels.json"
@@ -35,16 +35,21 @@ _CUSTOMERS_PATH = _DATA_DIR / "customers.json"
 _RESERVATIONS_PATH = _DATA_DIR / "reservations.json"
 
 
-# ----- Load / Save helpers (skip invalid entries but continue) -----
+# Load / Save helpers (skip invalid entries but continue)
 def load_hotels() -> list[Hotel]:
     """Load hotels from JSON; invalid entries are skipped."""
     raw = read_json_list(_HOTELS_PATH)
     hotels: list[Hotel] = []
+
     for idx, item in enumerate(raw):
         try:
             hotels.append(Hotel.from_dict(item))
         except (KeyError, ValueError, TypeError) as exc:
-            _print_error(f"Invalid hotel at index {idx} in '{_HOTELS_PATH}': {exc}. Skipping.")
+            _print_error(
+                f"Invalid hotel at index {idx} in '{_HOTELS_PATH}': "
+                f"{exc}. Skipping."
+            )
+
     return hotels
 
 
@@ -58,13 +63,16 @@ def load_customers() -> list[Customer]:
     """Load customers from JSON; invalid entries are skipped."""
     raw = read_json_list(_CUSTOMERS_PATH)
     customers: list[Customer] = []
+
     for idx, item in enumerate(raw):
         try:
             customers.append(Customer.from_dict(item))
         except (KeyError, ValueError, TypeError) as exc:
             _print_error(
-                f"Invalid customer at index {idx} in '{_CUSTOMERS_PATH}': {exc}. Skipping."
+                f"Invalid customer at index {idx} in '{_CUSTOMERS_PATH}': "
+                f"{exc}. Skipping."
             )
+
     return customers
 
 
@@ -78,13 +86,16 @@ def load_reservations() -> list[Reservation]:
     """Load reservations from JSON; invalid entries are skipped."""
     raw = read_json_list(_RESERVATIONS_PATH)
     reservations: list[Reservation] = []
+
     for idx, item in enumerate(raw):
         try:
             reservations.append(Reservation.from_dict(item))
         except (KeyError, ValueError, TypeError) as exc:
             _print_error(
-                f"Invalid reservation at index {idx} in '{_RESERVATIONS_PATH}': {exc}. Skipping."
+                f"Invalid reservation at index {idx} in '{_RESERVATIONS_PATH}': "
+                f"{exc}. Skipping."
             )
+
     return reservations
 
 
@@ -94,24 +105,31 @@ def save_reservations(reservations: list[Reservation]) -> None:
     write_json_list(_RESERVATIONS_PATH, payload)
 
 
-# ----- Generic find helpers -----
+# Generic find helpers
 def _find_hotel(hotels: list[Hotel], hotel_id: str) -> Hotel | None:
+    """Return the hotel with the given id, or None."""
     return next((h for h in hotels if h.hotel_id == hotel_id), None)
 
 
 def _find_customer(customers: list[Customer], customer_id: str) -> Customer | None:
+    """Return the customer with the given id, or None."""
     return next((c for c in customers if c.customer_id == customer_id), None)
 
 
-def _find_reservation(reservations: list[Reservation], reservation_id: str) -> Reservation | None:
-    return next((r for r in reservations if r.reservation_id == reservation_id), None)
+def _find_reservation(
+    reservations: list[Reservation],
+    reservation_id: str,
+) -> Reservation | None:
+    """Return the reservation with the given id, or None."""
+    return next(
+        (r for r in reservations if r.reservation_id == reservation_id),
+        None,
+    )
 
 
-# ----- CRUD: Hotels -----
+# CRUD: Hotels
 def create_hotel(hotel_id: str, name: str, rooms_total: int) -> bool:
-    """
-    Create a hotel. Returns True if created, False otherwise (non-fatal errors).
-    """
+    """Create a hotel. Returns True if created, False otherwise."""
     hotels = load_hotels()
     if _find_hotel(hotels, hotel_id) is not None:
         _print_error(f"Hotel '{hotel_id}' already exists.")
@@ -152,8 +170,12 @@ def display_hotel(hotel_id: str) -> dict[str, Any] | None:
     return hotel.to_dict()
 
 
-def modify_hotel(hotel_id: str, name: str | None = None, rooms_total: int | None = None) -> bool:
-    """Modify a hotel fields. Returns True if modified."""
+def modify_hotel(
+    hotel_id: str,
+    name: str | None = None,
+    rooms_total: int | None = None,
+) -> bool:
+    """Modify hotel fields. Returns True if modified."""
     hotels = load_hotels()
     hotel = _find_hotel(hotels, hotel_id)
     if hotel is None:
@@ -164,7 +186,11 @@ def modify_hotel(hotel_id: str, name: str | None = None, rooms_total: int | None
     new_rooms = hotel.rooms_total if rooms_total is None else rooms_total
 
     try:
-        updated = Hotel(hotel_id=hotel.hotel_id, name=new_name, rooms_total=new_rooms)
+        updated = Hotel(
+            hotel_id=hotel.hotel_id,
+            name=new_name,
+            rooms_total=new_rooms,
+        )
     except ValueError as exc:
         _print_error(str(exc))
         return False
@@ -174,7 +200,7 @@ def modify_hotel(hotel_id: str, name: str | None = None, rooms_total: int | None
     return True
 
 
-# ----- CRUD: Customers -----
+# CRUD: Customers
 def create_customer(customer_id: str, name: str, email: str) -> bool:
     """Create a customer. Returns True if created."""
     customers = load_customers()
@@ -222,7 +248,7 @@ def modify_customer(
     name: str | None = None,
     email: str | None = None,
 ) -> bool:
-    """Modify a customer fields. Returns True if modified."""
+    """Modify customer fields. Returns True if modified."""
     customers = load_customers()
     customer = _find_customer(customers, customer_id)
     if customer is None:
@@ -233,7 +259,11 @@ def modify_customer(
     new_email = customer.email if email is None else email
 
     try:
-        updated = Customer(customer_id=customer.customer_id, name=new_name, email=new_email)
+        updated = Customer(
+            customer_id=customer.customer_id,
+            name=new_name,
+            email=new_email,
+        )
     except ValueError as exc:
         _print_error(str(exc))
         return False
@@ -243,10 +273,12 @@ def modify_customer(
     return True
 
 
-# ----- Reservations logic -----
+# Reservations logic
 def _overlaps(a_start: date, a_end: date, b_start: date, b_end: date) -> bool:
     """
-    Two date ranges [start, end) overlap if start < other_end and other_start < end.
+    Two date ranges [start, end) overlap if:
+    start < other_end and other_start < end.
+
     End is exclusive to avoid double-counting check-out day.
     """
     return a_start < b_end and b_start < a_end
@@ -260,14 +292,17 @@ def _rooms_booked_for_hotel(
 ) -> int:
     """Sum rooms booked for a hotel that overlap the given date range."""
     total = 0
+
     for res in reservations:
         if res.hotel_id != hotel_id:
             continue
         if _overlaps(res.check_in, res.check_out, check_in, check_out):
             total += res.rooms
+
     return total
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 def create_reservation(
     reservation_id: str,
     hotel_id: str,
@@ -280,7 +315,7 @@ def create_reservation(
     Create a reservation if:
     - hotel exists
     - customer exists
-    - reservation_id unique
+    - reservation_id is unique
     - enough rooms are available for the date range
 
     Returns True if created.
@@ -316,18 +351,27 @@ def create_reservation(
         _print_error(str(exc))
         return False
 
-    already_booked = _rooms_booked_for_hotel(reservations, hotel_id, check_in, check_out)
+    already_booked = _rooms_booked_for_hotel(
+        reservations,
+        hotel_id,
+        check_in,
+        check_out,
+    )
     available = hotel.rooms_total - already_booked
+
     if reservation.rooms > available:
         _print_error(
-            f"Not enough rooms available for hotel '{hotel_id}'. "
-            f"Requested={reservation.rooms}, Available={available}."
+            "Not enough rooms available for hotel "
+            f"'{hotel_id}'. "
+            f"Requested={reservation.rooms}, "
+            f"Available={available}."
         )
         return False
 
     reservations.append(reservation)
     save_reservations(reservations)
     return True
+# pylint: enable=too-many-arguments,too-many-positional-arguments
 
 
 def cancel_reservation(reservation_id: str) -> bool:

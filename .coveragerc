@@ -1,8 +1,9 @@
-﻿[run]
+[run]
 source = src
 omit =
     .venv/*
     tests/*
+    src/smoke_test.py
 
 [report]
 fail_under = 85

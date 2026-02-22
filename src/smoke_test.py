@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+# pylint: disable=missing-function-docstring,duplicate-code
+# !/usr/bin/env python3
 """
 smoke_test.py
 
